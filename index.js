@@ -77,6 +77,7 @@ const init = function () {
 init ()
 const App = new ctrlApps()
 export default App
+export const sandbox = getSandbox
 // exports.app = ctrlApps
 // export const app = ctrlApps
 

@@ -3,10 +3,10 @@
 		module.exports = factory();
 	else if(typeof define === 'function' && define.amd)
 		define([], factory);
-	else {
-		var a = factory();
-		for(var i in a) (typeof exports === 'object' ? exports : root)[i] = a[i];
-	}
+	else if(typeof exports === 'object')
+		exports["yinyang"] = factory();
+	else
+		root["yinyang"] = factory();
 })(window, function() {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -183,11 +183,12 @@ function hijackers() {
 /*!******************!*\
   !*** ./index.js ***!
   \******************/
-/*! exports provided: default */
+/*! exports provided: default, sandbox */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "sandbox", function() { return sandbox; });
 /* harmony import */ var html_entry__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! html-entry */ "./node_modules/html-entry/esm/index.js");
 /* harmony import */ var _utils_clearTemplate__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils/clearTemplate */ "./utils/clearTemplate.js");
 /* harmony import */ var _utils_fragment__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils/fragment */ "./utils/fragment.js");
@@ -285,7 +286,8 @@ const init = function () {
 
 init();
 const App = new ctrlApps();
-/* harmony default export */ __webpack_exports__["default"] = (App); // exports.app = ctrlApps
+/* harmony default export */ __webpack_exports__["default"] = (App);
+const sandbox = _utils_sandbox__WEBPACK_IMPORTED_MODULE_3__["getSandbox"]; // exports.app = ctrlApps
 // export const app = ctrlApps
 
 /***/ }),
@@ -18065,42 +18067,44 @@ function getSandbox(appName) {
   //         return Reflect.set(target, name, property)
   //     }
   // })
-  let proxyWindow = new Proxy({ ...Object(_hijackers__WEBPACK_IMPORTED_MODULE_1__["default"])()
-  }, {
-    get: function (target, name) {
-      // console.log(name, target[name])
-      if (name === 'undefined') return window.undefined;
-
-      if (isConstructable(window[name])) {
-        return window[name];
-      }
-
-      if (name in target) {
-        return target[name];
-      } else if (name in window) {
-        const val = window[name];
-
-        if (typeof val === 'function') {
-          target[name] = val.bind(window);
-        } else {
-          target[name] = window[name];
-        }
-      }
-
-      return target[name];
-    },
-    set: function (target, name, property) {
-      target[name] = property;
-      return true;
-    }
-  });
-
-  function isConstructable(fn) {
-    if (typeof fn !== 'function') return false;
-    const constructableFunctionRegex = /^function\b\s[A-Z].*/;
-    const classRegex = /^class\b/;
-    return fn.prototype && Object.getOwnPropertyNames(fn.prototype).filter(k => k !== 'constructor').length || constructableFunctionRegex.test(fn.toString()) || classRegex.test(fn.toString());
-  } // let heads = proxyWindow.document.getElementsByTagName('head')
+  // let proxyWindow = new Proxy({
+  //     ...hijackers()
+  // }, {
+  //     get: function (target, name) {
+  //         // console.log(name, target[name])
+  //         if (name === 'undefined') return window.undefined;
+  //         if (isConstructable(window[name])) {
+  //             return window[name];
+  //         }
+  //         if (name in target) {
+  //             return target[name]
+  //         }
+  //         else if (name in window) {
+  //             const val = window[name];
+  //             if (typeof val === 'function') {
+  //                 target[name] = val.bind(window)
+  //             }
+  //             else {
+  //                 target[name] = window[name];
+  //             }
+  //         }
+  //         return target[name]
+  //     },
+  //     set: function (target, name, property) {
+  //         target[name] = property
+  //         return true
+  //     }
+  // })
+  // function isConstructable(fn) {
+  //     if (typeof fn !== 'function') return false
+  //     const constructableFunctionRegex = /^function\b\s[A-Z].*/
+  //     const classRegex = /^class\b/
+  //     return fn.prototype
+  //         && Object.getOwnPropertyNames(fn.prototype).filter(k => k !== 'constructor').length
+  //         || constructableFunctionRegex.test(fn.toString())
+  //         || classRegex.test(fn.toString())
+  // }
+  // let heads = proxyWindow.document.getElementsByTagName('head')
   // let srcipt = proxyWindow.document.createElement('script')
   // srcipt.src = 'http://localhost:8080/bundle.js'
   // heads[0].appendChild(srcipt)
@@ -18131,8 +18135,12 @@ function getSandbox(appName) {
   // proxyWindow.proppyReact = window.proppyReact
   // proxyWindow.webpackJsonpdemo = window.webpackJsonpdemo
   // proxyWindow.demo = window.demo
-
-
+  let iframe = document.createElement('iframe');
+  iframe.sandbox = 'allow-forms allow-scripts allow-same-origin allow-top-navigation allow-popups';
+  document.body.appendChild(iframe);
+  let proxyWindow = iframe.contentWindow;
+  iframe.parentNode.removeChild(iframe);
+  debugger;
   return proxyWindow;
 }
 

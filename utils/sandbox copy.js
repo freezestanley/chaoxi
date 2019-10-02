@@ -16,44 +16,44 @@ export function getSandbox(appName) {
     //     }
     // })
 
-    // let proxyWindow = new Proxy({
-    //     ...hijackers()
-    // }, {
-    //     get: function (target, name) {
-    //         // console.log(name, target[name])
-    //         if (name === 'undefined') return window.undefined;
-    //         if (isConstructable(window[name])) {
-    //             return window[name];
-    //         }
-    //         if (name in target) {
-    //             return target[name]
-    //         }
-    //         else if (name in window) {
-    //             const val = window[name];
-    //             if (typeof val === 'function') {
-    //                 target[name] = val.bind(window)
-    //             }
-    //             else {
-    //                 target[name] = window[name];
-    //             }
-    //         }
-    //         return target[name]
-    //     },
-    //     set: function (target, name, property) {
-    //         target[name] = property
-    //         return true
-    //     }
-    // })
+    let proxyWindow = new Proxy({
+        ...hijackers()
+    }, {
+        get: function (target, name) {
+            // console.log(name, target[name])
+            if (name === 'undefined') return window.undefined;
+            if (isConstructable(window[name])) {
+                return window[name];
+            }
+            if (name in target) {
+                return target[name]
+            }
+            else if (name in window) {
+                const val = window[name];
+                if (typeof val === 'function') {
+                    target[name] = val.bind(window)
+                }
+                else {
+                    target[name] = window[name];
+                }
+            }
+            return target[name]
+        },
+        set: function (target, name, property) {
+            target[name] = property
+            return true
+        }
+    })
 
-    // function isConstructable(fn) {
-    //     if (typeof fn !== 'function') return false
-    //     const constructableFunctionRegex = /^function\b\s[A-Z].*/
-    //     const classRegex = /^class\b/
-    //     return fn.prototype
-    //         && Object.getOwnPropertyNames(fn.prototype).filter(k => k !== 'constructor').length
-    //         || constructableFunctionRegex.test(fn.toString())
-    //         || classRegex.test(fn.toString())
-    // }
+    function isConstructable(fn) {
+        if (typeof fn !== 'function') return false
+        const constructableFunctionRegex = /^function\b\s[A-Z].*/
+        const classRegex = /^class\b/
+        return fn.prototype
+            && Object.getOwnPropertyNames(fn.prototype).filter(k => k !== 'constructor').length
+            || constructableFunctionRegex.test(fn.toString())
+            || classRegex.test(fn.toString())
+    }
 
     // let heads = proxyWindow.document.getElementsByTagName('head')
     // let srcipt = proxyWindow.document.createElement('script')
@@ -88,11 +88,7 @@ export function getSandbox(appName) {
     // proxyWindow.proppyReact = window.proppyReact
     // proxyWindow.webpackJsonpdemo = window.webpackJsonpdemo
     // proxyWindow.demo = window.demo
-    let iframe = document.createElement('iframe') 
-    iframe.sandbox = 'allow-forms allow-scripts allow-same-origin allow-top-navigation allow-popups'
-    document.body.appendChild(iframe)
-    let proxyWindow = iframe.contentWindow
-    iframe.parentNode.removeChild(iframe)
-    debugger
+
+
     return proxyWindow
 }
